@@ -9,12 +9,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Swashbuckle.Swagger.Model;
-using Bibliotheca.Server.ServiceDiscovery.ServiceClient;
-using System;
-using System.Collections.Generic;
 using Bibliotheca.Server.ServiceDiscovery.ServiceClient.Extensions;
 using Bibliotheca.Server.Authorization.Heimdall.Core.Parameters;
 using Bibliotheca.Server.Authorization.Heimdall.Core.Services;
+using Hangfire;
+using Bibliotheca.Server.Authorization.Heimdall.Api.Jobs;
 
 namespace Bibliotheca.Server.Authorization.Heimdall.Api
 {
@@ -37,6 +36,11 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<ApplicationParameters>(Configuration);
+
+            if (UseServiceDiscovery)
+            {
+                services.AddHangfire(x => x.UseStorage(new Hangfire.MemoryStorage.MemoryStorage()));
+            }
 
             services.AddCors(options =>
             {
@@ -79,20 +83,28 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Api
             });
 
             services.AddServiceDiscovery();
+            services.AddScoped<IServiceDiscoveryRegistrationJob, ServiceDiscoveryRegistrationJob>();
 
             services.AddScoped<Bibliotheca.Server.Authorization.Heimdall.Core.Services.IAuthorizationService, AuthorizationService>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            if (UseServiceDiscovery)
+            if(env.IsDevelopment())
             {
-                var options = GetServiceDiscoveryOptions();
-                app.RegisterService(options);
+                loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+                loggerFactory.AddDebug();
+            }
+            else
+            {
+                loggerFactory.AddAzureWebAppDiagnostics();
             }
 
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
+            if (UseServiceDiscovery)
+            {
+                app.UseHangfireServer();
+                RecurringJob.AddOrUpdate<IServiceDiscoveryRegistrationJob>("register-service", x => x.RegisterServiceAsync(null), Cron.Minutely);
+            }
 
             app.UseExceptionHandler();
             app.UseCors("AllowAllOrigins");
@@ -118,26 +130,6 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Api
 
             app.UseSwagger();
             app.UseSwaggerUi();
-        }
-
-        private ServiceDiscoveryOptions GetServiceDiscoveryOptions()
-        {
-            var serviceDiscoveryConfiguration = Configuration.GetSection("ServiceDiscovery");
-
-            var tags = new List<string>();
-            var tagsSection = serviceDiscoveryConfiguration.GetSection("ServiceTags");
-            tagsSection.Bind(tags);
-
-            var options = new ServiceDiscoveryOptions();
-            options.ServiceOptions.Id = serviceDiscoveryConfiguration["ServiceId"];
-            options.ServiceOptions.Name = serviceDiscoveryConfiguration["ServiceName"];
-            options.ServiceOptions.Address = serviceDiscoveryConfiguration["ServiceAddress"];
-            options.ServiceOptions.Port = Convert.ToInt32(serviceDiscoveryConfiguration["ServicePort"]);
-            options.ServiceOptions.HttpHealthCheck = serviceDiscoveryConfiguration["ServiceHttpHealthCheck"];
-            options.ServiceOptions.Tags = tags;
-            options.ServerOptions.Address = serviceDiscoveryConfiguration["ServerAddress"];
-
-            return options;
         }
     }
 }
