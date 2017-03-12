@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Bibliotheca.Server.Authorization.Abstractions.DataTransferObjects;
+using Bibliotheca.Server.Authorization.Heimdall.Core.DataTransferObjects;
 using Bibliotheca.Server.Authorization.Heimdall.Core.Parameters;
 using Microsoft.Extensions.Options;
 

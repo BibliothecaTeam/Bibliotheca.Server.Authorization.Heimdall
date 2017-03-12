@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Bibliotheca.Server.Authorization.Abstractions.DataTransferObjects;
+using Bibliotheca.Server.Authorization.Heimdall.Core.DataTransferObjects;
 
 namespace Bibliotheca.Server.Authorization.Heimdall.Core.Services
 {
