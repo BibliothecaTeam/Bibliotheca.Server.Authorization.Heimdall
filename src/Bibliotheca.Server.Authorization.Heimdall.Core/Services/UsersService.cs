@@ -31,10 +31,20 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Core.Services
                 var users = new List<UserDto>();
                 foreach (var doc in docs)
                 {
-                    users.Add((UserDto)doc);
+                    var user = (UserDto)doc;
+                    ClearAccessToken(user);
+                    users.Add(user);
                 }
 
                 return users;
+            }
+        }
+
+        private static void ClearAccessToken(UserDto user)
+        {
+            if (!string.IsNullOrWhiteSpace(user.AccessToken))
+            {
+                user.AccessToken = "********-*****-****-****-************";
             }
         }
 
@@ -47,6 +57,7 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Core.Services
                     var response = await client.ReadDocumentAsync(UriFactory.CreateDocumentUri(_applicationParameters.DatabaseId, _applicationParameters.CollectionId, id));
 
                     UserDto user = (UserDto)(dynamic)response.Resource;
+                    ClearAccessToken(user);
                     return user;
                 }
             }

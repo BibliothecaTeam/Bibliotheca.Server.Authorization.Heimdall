@@ -16,7 +16,10 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Core.DataTransferObjects
         [JsonProperty(PropertyName = "role")]
         public RoleEnumDto Role { get; set; }
 
-        [JsonProperty(PropertyName = "userProjects", NullValueHandling = NullValueHandling.Ignore)]
-        public IList<UserProjectDto> UserProjects { get; set; }
+        [JsonProperty(PropertyName = "accessToken")]
+        public string AccessToken { get; set;}
+
+        [JsonProperty(PropertyName = "projects", NullValueHandling = NullValueHandling.Ignore)]
+        public IList<string> Projects { get; set; }
     }
 }
