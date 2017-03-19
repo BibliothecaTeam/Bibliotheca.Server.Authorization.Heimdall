@@ -14,6 +14,7 @@ using Bibliotheca.Server.Authorization.Heimdall.Core.Parameters;
 using Bibliotheca.Server.Authorization.Heimdall.Core.Services;
 using Hangfire;
 using Bibliotheca.Server.Authorization.Heimdall.Api.Jobs;
+using Bibliotheca.Server.Mvc.Middleware.Diagnostics.Exceptions;
 
 namespace Bibliotheca.Server.Authorization.Heimdall.Api
 {
@@ -85,7 +86,7 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Api
             services.AddServiceDiscovery();
             services.AddScoped<IServiceDiscoveryRegistrationJob, ServiceDiscoveryRegistrationJob>();
 
-            services.AddScoped<Bibliotheca.Server.Authorization.Heimdall.Core.Services.IAuthorizationService, AuthorizationService>();
+            services.AddScoped<IUsersService, UsersService>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
