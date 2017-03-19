@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using Bibliotheca.Server.Authorization.Heimdall.Core.Exceptions;
 
@@ -15,7 +14,7 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Core.Services
     public class UsersService : IUsersService
     {
         private readonly ApplicationParameters _applicationParameters;
-        private static readonly ConnectionPolicy connectionPolicy = new ConnectionPolicy { UserAgentSuffix = " samples-net/2" };
+        private static readonly ConnectionPolicy connectionPolicy = new ConnectionPolicy { UserAgentSuffix = " heimdall/1.0" };
 
         public UsersService(IOptions<ApplicationParameters> applicationParameters)
         {
