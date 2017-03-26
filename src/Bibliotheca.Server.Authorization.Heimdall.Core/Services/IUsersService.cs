@@ -15,5 +15,9 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Core.Services
         Task UpdateAsync(string id, UserDto user);
 
         Task DeleteAsync(string id);
+
+        Task RefreshTokenAsync(string id, string accessToken);
+
+        UserDto GetUserByToken(string accessToken);
     }
 }

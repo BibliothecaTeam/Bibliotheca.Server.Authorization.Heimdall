@@ -1,12 +1,14 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bibliotheca.Server.Authorization.Heimdall.Core.DataTransferObjects;
 using Bibliotheca.Server.Authorization.Heimdall.Core.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Bibliotheca.Server.Authorization.Heimdall.Api.Controllers
 {
-    [Microsoft.AspNetCore.Authorization.Authorize]
+    [Authorize]
     [ApiVersion("1.0")]
     [Route("api/users")]
     public class UsersController : Controller
@@ -46,6 +48,12 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Api.Controllers
         public async Task Delete(string id)
         {
             await _usersService.DeleteAsync(id);
+        }
+
+        [HttpPut("{id}/refreshToken")]
+        public async Task RefreshToken(string id, [FromBody] AccessTokenDto accessToken)
+        {
+            await _usersService.RefreshTokenAsync(id, accessToken.AccessToken);
         }
     }
 }

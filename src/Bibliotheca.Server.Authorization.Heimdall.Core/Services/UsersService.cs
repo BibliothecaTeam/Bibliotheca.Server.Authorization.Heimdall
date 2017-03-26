@@ -8,6 +8,7 @@ using Microsoft.Azure.Documents.Client;
 using System.Collections.Generic;
 using System.Net;
 using Bibliotheca.Server.Authorization.Heimdall.Core.Exceptions;
+using System.Linq;
 
 namespace Bibliotheca.Server.Authorization.Heimdall.Core.Services
 {
@@ -40,36 +41,12 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Core.Services
             }
         }
 
-        private static void ClearAccessToken(UserDto user)
-        {
-            if (!string.IsNullOrWhiteSpace(user.AccessToken))
-            {
-                user.AccessToken = "********-*****-****-****-************";
-            }
-        }
-
         public async Task<UserDto> GetAsync(string id)
         {
-            try
-            {
-                using (DocumentClient client = new DocumentClient(new Uri(_applicationParameters.EndpointUrl), _applicationParameters.AuthorizationKey, connectionPolicy))
-                {
-                    var response = await client.ReadDocumentAsync(UriFactory.CreateDocumentUri(_applicationParameters.DatabaseId, _applicationParameters.CollectionId, id));
+            var user = await GetUserAsync(id);
+            ClearAccessToken(user);
 
-                    UserDto user = (UserDto)(dynamic)response.Resource;
-                    ClearAccessToken(user);
-                    return user;
-                }
-            }
-            catch (DocumentClientException documentClientException)
-            {
-                if (documentClientException.StatusCode == HttpStatusCode.NotFound)
-                {
-                    throw new UserNotFoundException();
-                }
-
-                throw;
-            }
+            return user;
         }
 
         public async Task CreateAsync(UserDto user)
@@ -92,6 +69,12 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Core.Services
         {
             try
             {
+                var existingUser = await GetUserAsync(id);
+                if(existingUser != null)
+                {
+                    user.AccessToken = existingUser.AccessToken;
+                }
+
                 using (DocumentClient client = new DocumentClient(new Uri(_applicationParameters.EndpointUrl), _applicationParameters.AuthorizationKey, connectionPolicy))
                 {
                     await client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_applicationParameters.DatabaseId, _applicationParameters.CollectionId, id), user);
@@ -105,6 +88,32 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Core.Services
                 }
 
                 throw new UserWasNotUpdatedException($"There was an error during updating user '{id}'.", documentClientException);
+            }
+        }
+
+        public async Task RefreshTokenAsync(string id, string accessToken)
+        {
+            try
+            {
+                var user = await GetUserAsync(id);
+                if(user != null)
+                {
+                    user.AccessToken = accessToken;              
+
+                    using (DocumentClient client = new DocumentClient(new Uri(_applicationParameters.EndpointUrl), _applicationParameters.AuthorizationKey, connectionPolicy))
+                    {
+                        await client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_applicationParameters.DatabaseId, _applicationParameters.CollectionId, id), user);
+                    }
+                }
+            }
+            catch (DocumentClientException documentClientException)
+            {
+                if (documentClientException.StatusCode == HttpStatusCode.NotFound)
+                {
+                    throw new UserNotFoundException();
+                }
+
+                throw new UserWasNotUpdatedException($"There was an error during refreshing token for user '{id}'.", documentClientException);
             }
         }
 
@@ -127,6 +136,50 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Core.Services
                 {
                     throw new UserWasNotDeletedException($"There was an error during deleting user '{id}'.", documentClientException);
                 }
+            }
+        }
+
+        public UserDto GetUserByToken(string accessToken)
+        {
+            using (DocumentClient client = new DocumentClient(new Uri(_applicationParameters.EndpointUrl), _applicationParameters.AuthorizationKey, connectionPolicy))
+            {
+                var collectionLink = UriFactory.CreateDocumentCollectionUri(_applicationParameters.DatabaseId, _applicationParameters.CollectionId);
+
+                UserDto user = client.CreateDocumentQuery<UserDto>(collectionLink)
+                    .Where(x => x.AccessToken == accessToken).AsEnumerable().FirstOrDefault();
+
+                return user;
+            }
+        }
+
+        private async Task<UserDto> GetUserAsync(string id)
+        {
+            try
+            {
+                using (DocumentClient client = new DocumentClient(new Uri(_applicationParameters.EndpointUrl), _applicationParameters.AuthorizationKey, connectionPolicy))
+                {
+                    var response = await client.ReadDocumentAsync(UriFactory.CreateDocumentUri(_applicationParameters.DatabaseId, _applicationParameters.CollectionId, id));
+
+                    UserDto user = (UserDto)(dynamic)response.Resource;
+                    return user;
+                }
+            }
+            catch (DocumentClientException documentClientException)
+            {
+                if (documentClientException.StatusCode == HttpStatusCode.NotFound)
+                {
+                    throw new UserNotFoundException();
+                }
+
+                throw;
+            }
+        }
+
+        private static void ClearAccessToken(UserDto user)
+        {
+            if (!string.IsNullOrWhiteSpace(user.AccessToken))
+            {
+                user.AccessToken = "********-*****-****-****-************";
             }
         }
     }
