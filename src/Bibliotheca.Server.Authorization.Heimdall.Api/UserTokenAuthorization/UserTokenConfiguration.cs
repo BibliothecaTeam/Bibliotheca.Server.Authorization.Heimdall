@@ -6,6 +6,9 @@ using Microsoft.Extensions.Options;
 
 namespace Bibliotheca.Server.Authorization.Heimdall.Api.UserTokenAuthorization
 {
+    /// <summary>
+    /// Class for user token configuration (retrieves user token authorization URL).
+    /// </summary>
     public class UserTokenConfiguration : IUserTokenConfiguration
     {
         private readonly ILogger<UserTokenConfiguration> _logger;
@@ -14,25 +17,38 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Api.UserTokenAuthorization
 
         IOptions<ApplicationParameters> _applicationParameters;
         
-        public UserTokenConfiguration(ILogger<UserTokenConfiguration> logger, IServiceDiscoveryQuery serviceDiscoveryQuery, IOptions<ApplicationParameters> applicationParameters)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="logger">Logger.</param>
+        /// <param name="serviceDiscoveryQuery">Service discovery query.</param>
+        /// <param name="applicationParameters">Application parameters.</param>
+        public UserTokenConfiguration(
+            ILogger<UserTokenConfiguration> logger, 
+            IServiceDiscoveryQuery serviceDiscoveryQuery, 
+            IOptions<ApplicationParameters> applicationParameters)
         {
             _logger = logger;
             _serviceDiscoveryQuery = serviceDiscoveryQuery;
             _applicationParameters = applicationParameters;
         }
 
+        /// <summary>
+        /// Getting authorization URL.
+        /// </summary>
+        /// <returns>Returns authorization URL (url to authorization service).</returns>
         public string GetAuthorizationUrl()
         {
             _logger.LogInformation("Retrieving authorization url...");
 
-            var service = _serviceDiscoveryQuery.GetServiceAsync(
+            var instance = _serviceDiscoveryQuery.GetServiceInstanceAsync(
                 new ServerOptions { Address = _applicationParameters.Value.ServiceDiscovery.ServerAddress },
-                new string[] { "heimdall" }
+                new string[] { "authorization" }
             ).GetAwaiter().GetResult();
 
-            if (service != null)
+            if (instance != null)
             {
-                var address = $"http://{service.Address}:{service.Port}/api/";
+                var address = $"http://{instance.Address}:{instance.Port}/api/";
                 _logger.LogInformation($"Authorization url was retrieved ({address}).");
 
                 return address;

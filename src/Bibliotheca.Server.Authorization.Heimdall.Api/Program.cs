@@ -5,8 +5,15 @@ using Microsoft.Extensions.Configuration;
 
 namespace Bibliotheca.Server.Authorization.Heimdall.Api
 {
+    /// <summary>
+    /// Main program endpoint.
+    /// </summary>
     public class Program
     {
+        /// <summary>
+        /// Main program method.
+        /// </summary>
+        /// <param name="args"></param>
         public static void Main(string[] args)
         {
             var configuration = new ConfigurationBuilder()
