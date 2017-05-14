@@ -158,7 +158,7 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Core.Services
             {
                 using (DocumentClient client = new DocumentClient(new Uri(_applicationParameters.EndpointUrl), _applicationParameters.AuthorizationKey, connectionPolicy))
                 {
-                    var response = await client.ReadDocumentAsync(UriFactory.CreateDocumentUri(_applicationParameters.DatabaseId, _applicationParameters.CollectionId, id));
+                    var response = await client.ReadDocumentAsync(UriFactory.CreateDocumentUri(_applicationParameters.DatabaseId, _applicationParameters.CollectionId, id.ToLower()));
 
                     UserDto user = (UserDto)(dynamic)response.Resource;
                     return user;
