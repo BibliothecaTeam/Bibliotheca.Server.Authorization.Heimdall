@@ -7,7 +7,7 @@
         {
             "taskName": "build",
             "args": [
-                "${workspaceRoot}/src/Bibliotheca.Server.Authorization.Heimdall.Api/project.json"
+                "${workspaceRoot}/src/Bibliotheca.Server.Authorization.Heimdall.Api/Bibliotheca.Server.Authorization.Heimdall.Api.csproj"
             ],
             "isBuildCommand": true,
             "problemMatcher": "$msCompile"
