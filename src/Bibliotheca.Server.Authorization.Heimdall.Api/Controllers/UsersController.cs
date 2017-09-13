@@ -11,7 +11,7 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Api.Controllers
     /// <summary>
     /// Controller for managing users.
     /// </summary>
-    [Authorize]
+    [Authorize(AuthenticationSchemes = "SecureToken, UserToken, Bearer")]
     [ApiVersion("1.0")]
     [Route("api/users")]
     public class UsersController : Controller
