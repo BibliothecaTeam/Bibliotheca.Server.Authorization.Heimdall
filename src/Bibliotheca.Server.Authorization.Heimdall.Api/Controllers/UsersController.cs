@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bibliotheca.Server.Authorization.Heimdall.Core.DataTransferObjects;
 using Bibliotheca.Server.Authorization.Heimdall.Core.Services;
-using Microsoft.AspNetCore.Authorization;
+using Bibliotheca.Server.Mvc.Middleware.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Bibliotheca.Server.Authorization.Heimdall.Api.Controllers
@@ -11,7 +11,7 @@ namespace Bibliotheca.Server.Authorization.Heimdall.Api.Controllers
     /// <summary>
     /// Controller for managing users.
     /// </summary>
-    [Authorize(AuthenticationSchemes = "SecureToken, UserToken, Bearer")]
+    [UserAuthorize]
     [ApiVersion("1.0")]
     [Route("api/users")]
     public class UsersController : Controller
